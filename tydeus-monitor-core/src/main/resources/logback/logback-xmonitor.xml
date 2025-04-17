@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+Default logback configuration provided for import, equivalent to the programmatic
+initialization performed by application
+-->
+
+<!-- 配置用途: 日志配置                    -->
+<!-- @author  qrz -->
+<!-- @date    2024/12/24                -->
+<!-- @since   1.0.0 ：创建                     -->
+<!-- @since   1.0.10：更新：定制 logback property、appender name 前缀，避免与宿主应用命名冲突 -->
+
+<included>
+    <property name="TMONITOR_LOG_PATH" value="${user.home}/logs/xmonitor" />
+
+    <!-- time@@@traceId@@@rpcId@@@pressTag@@@version@@@code@@@desc@@@point@@@event@cost@@@request@@@response -->
+    <property name="TMONITOR_STAT_LOG_PATTERN" value="%m%n"/>
+
+    <!-- time@@@traceId@@@rpcId@@@pressTag@@@version@@@code@@@desc@@@point@@@request@@@errorCode@@@errorMessage@@@ExceptionClassName@@@stacktrace -->
+    <property name="TMONITOR_ERROR_LOG_PATTERN" value="%m%n"/>
+
+    <!-- 统计监控 stat.log 日志 -->
+
+    <appender name="tMonitorStatAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${TMONITOR_LOG_PATH}/stat.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${TMONITOR_LOG_PATH}/stat.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>3</maxHistory>
+            <maxFileSize>500MB</maxFileSize>
+            <totalSizeCap>2GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${TMONITOR_STAT_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="tMonitorStatAsyncAppender" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="tMonitorStatAppender" />
+        <queueSize>1024</queueSize>
+        <discardingThreshold>205</discardingThreshold>
+        <neverBlock>true</neverBlock>
+    </appender>
+
+    <!-- 异常监控 error.log 日志 -->
+
+    <appender name="tMonitorErrorAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${TMONITOR_LOG_PATH}/error.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${TMONITOR_LOG_PATH}/error.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>3</maxHistory>
+            <maxFileSize>500MB</maxFileSize>
+            <totalSizeCap>2GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${TMONITOR_ERROR_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="tMonitorErrorAsyncAppender" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="tMonitorErrorAppender" />
+        <queueSize>256</queueSize>
+        <discardingThreshold>51</discardingThreshold>
+        <neverBlock>true</neverBlock>
+    </appender>
+
+    <!-- =========== logger =========== -->
+
+    <logger name="tmonitor-stat" additivity="false">
+        <level value="WARN" />
+        <appender-ref ref="tMonitorStatAsyncAppender" />
+    </logger>
+
+    <logger name="tmonitor-error" additivity="false">
+        <level value="WARN" />
+        <appender-ref ref="tMonitorErrorAsyncAppender" />
+    </logger>
+
+</included>
